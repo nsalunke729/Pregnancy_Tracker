@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Medicine, MedicineLog } from '@/lib/types'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, X, Check, Bell, BellOff, Clock } from 'lucide-react'
+import { Plus, X, Check, Bell, BellOff, Clock, Pencil } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
@@ -23,8 +23,8 @@ const TIME_OPTIONS = [
 ]
 
 export default function MedicinesPage() {
-  const router  = useRouter()
-  const today   = format(new Date(), 'yyyy-MM-dd')
+  const router      = useRouter()
+  const today       = format(new Date(), 'yyyy-MM-dd')
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const [pregnancyId, setPregnancyId] = useState<string | null>(null)
@@ -34,10 +34,17 @@ export default function MedicinesPage() {
   const [loading,     setLoading]     = useState(true)
   const [saving,      setSaving]      = useState(false)
   const [notifPerm,   setNotifPerm]   = useState<ReturnType<typeof getNotificationPermission>>('default')
-  // Form state
+
+  // Add form
   const [name,   setName]   = useState('')
   const [dosage, setDosage] = useState('')
   const [times,  setTimes]  = useState<string[]>(['Morning'])
+
+  // Edit form
+  const [editingId,   setEditingId]   = useState<string | null>(null)
+  const [editName,    setEditName]    = useState('')
+  const [editDosage,  setEditDosage]  = useState('')
+  const [editTimes,   setEditTimes]   = useState<string[]>([])
 
   useEffect(() => {
     load()
@@ -45,14 +52,11 @@ export default function MedicinesPage() {
     setNotifPerm(getNotificationPermission())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Check reminders every minute
   useEffect(() => {
     if (!medicines.length) return
     const meds: MedicineForReminder[] = medicines.map((m) => ({ id: m.id, name: m.name, times: m.times }))
     checkAndFireMedicineReminders(meds, logs)
-    intervalRef.current = setInterval(() => {
-      checkAndFireMedicineReminders(meds, logs)
-    }, 60_000)
+    intervalRef.current = setInterval(() => checkAndFireMedicineReminders(meds, logs), 60_000)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [medicines, logs])
 
@@ -65,14 +69,12 @@ export default function MedicinesPage() {
       .from('pregnancies').select('id')
       .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
       .limit(1).single()
-
     if (!pregnancy) { router.push('/onboarding'); return }
     setPregnancyId(pregnancy.id)
 
     const { data: meds } = await supabase
       .from('medicines').select('*')
-      .eq('pregnancy_id', pregnancy.id).eq('active', true)
-      .order('created_at')
+      .eq('pregnancy_id', pregnancy.id).eq('active', true).order('created_at')
 
     const { data: medLogs } = await supabase
       .from('medicine_logs').select('*')
@@ -81,7 +83,6 @@ export default function MedicinesPage() {
 
     const logMap: Record<string, boolean> = {}
     medLogs?.forEach((l: MedicineLog) => { logMap[l.medicine_id] = l.taken })
-
     setMedicines(meds ?? [])
     setLogs(logMap)
     setLoading(false)
@@ -106,10 +107,34 @@ export default function MedicinesPage() {
       .from('medicines')
       .insert({ pregnancy_id: pregnancyId, name, dosage: dosage || null, times, active: true })
       .select().single()
-
     if (data) {
       setMedicines((prev) => [...prev, data])
       setName(''); setDosage(''); setTimes(['Morning']); setShowForm(false)
+    }
+    setSaving(false)
+  }
+
+  function startEdit(med: Medicine) {
+    setShowForm(false)
+    setEditingId(med.id)
+    setEditName(med.name)
+    setEditDosage(med.dosage ?? '')
+    setEditTimes([...med.times])
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingId) return
+    setSaving(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('medicines')
+      .update({ name: editName, dosage: editDosage || null, times: editTimes })
+      .eq('id', editingId)
+      .select().single()
+    if (data) {
+      setMedicines((prev) => prev.map((m) => m.id === editingId ? data : m))
+      setEditingId(null)
     }
     setSaving(false)
   }
@@ -120,8 +145,8 @@ export default function MedicinesPage() {
     setMedicines((prev) => prev.filter((m) => m.id !== id))
   }
 
-  function toggleTime(t: string) {
-    setTimes((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t])
+  function toggleTime(t: string, arr: string[], setter: (v: string[]) => void) {
+    setter(arr.includes(t) ? arr.filter((x) => x !== t) : [...arr, t])
   }
 
   async function handleEnableNotifications() {
@@ -135,15 +160,13 @@ export default function MedicinesPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-4xl animate-pulse">💊</div>
-      </div>
-    )
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-4xl animate-pulse">💊</div>
+    </div>
+  )
 
-  const allTaken  = medicines.length > 0 && medicines.every((m) => logs[m.id])
+  const allTaken   = medicines.length > 0 && medicines.every((m) => logs[m.id])
   const takenCount = medicines.filter((m) => logs[m.id]).length
   const nextReminder = getNextReminderLabel(
     medicines.map((m) => ({ id: m.id, name: m.name, times: m.times }))
@@ -153,15 +176,15 @@ export default function MedicinesPage() {
     <div className="p-4 space-y-4">
       <div className="pt-4 pb-2 flex items-center justify-between">
         <div>
-          <p className="text-gray-500 text-sm">{format(new Date(), 'EEEE, MMMM d')}</p>
+          <p className="text-rose-400 text-sm font-medium">{format(new Date(), 'EEEE, MMMM d')}</p>
           <h1 className="text-2xl font-bold text-gray-900">Medicines</h1>
         </div>
-        <Button size="icon" onClick={() => setShowForm(!showForm)}>
+        <Button size="icon" onClick={() => { setShowForm(!showForm); setEditingId(null) }}>
           <Plus className="w-5 h-5" />
         </Button>
       </div>
 
-      {/* Notification banner */}
+      {/* Notification banners */}
       {notifPerm === 'default' && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-center">
           <Bell className="w-5 h-5 text-amber-500 flex-shrink-0" />
@@ -216,45 +239,28 @@ export default function MedicinesPage() {
             <form onSubmit={addMedicine} className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-1.5 block">Name *</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Folic Acid, Iron, Vitamin D…"
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
-                />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Folic Acid, Iron, Vitamin D…" required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-1.5 block">Dosage (optional)</label>
-                <input
-                  type="text"
-                  value={dosage}
-                  onChange={(e) => setDosage(e.target.value)}
+                <input type="text" value={dosage} onChange={(e) => setDosage(e.target.value)}
                   placeholder="e.g. 400mg, 1 tablet"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
-                />
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white" />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-2 block">When to take (tap to select)</label>
+                <label className="text-xs font-medium text-gray-500 mb-2 block">When to take</label>
                 <div className="grid grid-cols-2 gap-2">
                   {TIME_OPTIONS.map(({ label, emoji }) => {
-                    const selected = times.includes(label)
+                    const sel = times.includes(label)
                     return (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => toggleTime(label)}
-                        className={cn(
-                          'flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer',
-                          selected
-                            ? 'bg-rose-500 text-white border-rose-500 shadow-sm'
-                            : 'bg-gray-100 text-gray-700 border-gray-100 hover:bg-gray-200'
-                        )}
-                      >
+                      <button key={label} type="button" onClick={() => toggleTime(label, times, setTimes)}
+                        className={cn('flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer',
+                          sel ? 'bg-rose-500 text-white border-rose-500' : 'bg-gray-100 text-gray-700 border-gray-100 hover:bg-gray-200')}>
                         <span className="text-lg">{emoji}</span>
                         <span className="text-sm font-semibold">{label}</span>
-                        {selected && <Check className="w-4 h-4 ml-auto" />}
+                        {sel && <Check className="w-4 h-4 ml-auto" />}
                       </button>
                     )
                   })}
@@ -264,16 +270,14 @@ export default function MedicinesPage() {
                 <Button type="submit" className="flex-1" disabled={saving || !name || times.length === 0}>
                   {saving ? 'Adding…' : 'Add Medicine'}
                 </Button>
-                <Button type="button" variant="ghost" className="flex-1" onClick={() => setShowForm(false)}>
-                  Cancel
-                </Button>
+                <Button type="button" variant="ghost" className="flex-1" onClick={() => setShowForm(false)}>Cancel</Button>
               </div>
             </form>
           </CardBody>
         </Card>
       )}
 
-      {/* Medicine checklist */}
+      {/* Medicine list */}
       {medicines.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <div className="text-6xl mb-4">💊</div>
@@ -285,23 +289,64 @@ export default function MedicinesPage() {
           <p className="text-xs font-semibold text-gray-400 tracking-wide">TAP TO MARK AS TAKEN</p>
           {medicines.map((med) => {
             const taken = logs[med.id] ?? false
+            const isEditing = editingId === med.id
+
+            if (isEditing) {
+              return (
+                <Card key={med.id} className="border-rose-200 shadow-md">
+                  <CardBody className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-800">Edit Medicine</p>
+                    <form onSubmit={saveEdit} className="space-y-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 mb-1.5 block">Name *</label>
+                        <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} required
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 mb-1.5 block">Dosage (optional)</label>
+                        <input type="text" value={editDosage} onChange={(e) => setEditDosage(e.target.value)}
+                          placeholder="e.g. 400mg, 1 tablet"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 mb-2 block">When to take</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {TIME_OPTIONS.map(({ label, emoji }) => {
+                            const sel = editTimes.includes(label)
+                            return (
+                              <button key={label} type="button"
+                                onClick={() => toggleTime(label, editTimes, setEditTimes)}
+                                className={cn('flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer',
+                                  sel ? 'bg-rose-500 text-white border-rose-500' : 'bg-gray-100 text-gray-700 border-gray-100 hover:bg-gray-200')}>
+                                <span className="text-lg">{emoji}</span>
+                                <span className="text-sm font-semibold">{label}</span>
+                                {sel && <Check className="w-4 h-4 ml-auto" />}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="submit" className="flex-1" disabled={saving || !editName || editTimes.length === 0}>
+                          {saving ? 'Saving…' : 'Save Changes'}
+                        </Button>
+                        <Button type="button" variant="ghost" className="flex-1" onClick={() => setEditingId(null)}>Cancel</Button>
+                      </div>
+                    </form>
+                  </CardBody>
+                </Card>
+              )
+            }
+
             return (
-              <button
-                key={med.id}
-                type="button"
-                onClick={() => toggleTaken(med.id)}
+              <button key={med.id} type="button" onClick={() => toggleTaken(med.id)}
                 className={cn(
                   'w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all active:scale-98 text-left',
-                  taken
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-white border-gray-200 shadow-sm hover:border-rose-200 hover:shadow-md'
-                )}
-              >
+                  taken ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 shadow-sm hover:border-rose-200'
+                )}>
                 <div className={cn(
                   'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all',
-                  taken
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 border-2 border-dashed border-gray-300'
+                  taken ? 'bg-green-500 text-white' : 'bg-gray-100 border-2 border-dashed border-gray-300'
                 )}>
                   {taken && <Check className="w-4 h-4" />}
                 </div>
@@ -313,13 +358,21 @@ export default function MedicinesPage() {
                     {[med.dosage, med.times.join(' · ')].filter(Boolean).join(' — ')}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {taken && <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ Done</span>}
                   <button
-                    onClick={(e) => { e.stopPropagation(); deleteMedicine(med.id) }}
-                    className="text-gray-300 hover:text-red-400 transition-colors p-1 rounded-lg hover:bg-red-50"
+                    onClick={(e) => { e.stopPropagation(); startEdit(med) }}
+                    className="text-gray-300 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-rose-50"
+                    title="Edit"
                   >
-                    <X className="w-4 h-4" />
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteMedicine(med.id) }}
+                    className="text-gray-300 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-50"
+                    title="Delete"
+                  >
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </button>

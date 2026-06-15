@@ -21,6 +21,7 @@ export default function MorePage() {
     { href: '/appointments', icon: Calendar, label: 'Appointments'     },
     { href: '/history',      icon: History,  label: 'History'          },
     { href: '/guide',        icon: BookOpen, label: 'Symptom Guide'    },
+    { href: '/settings',     icon: Settings, label: 'Pregnancy Settings'  },
   ]
 
   return (
@@ -29,10 +30,10 @@ export default function MorePage() {
         <h1 className="text-2xl font-bold text-gray-900">More</h1>
       </div>
 
-      {/* Compact grouped list */}
       <Card className="overflow-hidden divide-y divide-gray-100">
         {MENU_ITEMS.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href} className="flex items-center gap-3 px-4 py-3.5 hover:bg-rose-50/60 active:bg-rose-50 transition-colors">
+          <Link key={href} href={href}
+            className="flex items-center gap-3 px-4 py-3.5 hover:bg-rose-50/60 active:bg-rose-50 transition-colors">
             <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0">
               <Icon className="w-4 h-4 text-rose-500" />
             </div>
@@ -42,7 +43,6 @@ export default function MorePage() {
         ))}
       </Card>
 
-      {/* Sign out */}
       <Card className="overflow-hidden">
         <button
           onClick={handleSignOut}
