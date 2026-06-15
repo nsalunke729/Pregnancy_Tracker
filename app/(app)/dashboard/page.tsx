@@ -113,9 +113,8 @@ export default function DashboardPage() {
               <div className="bg-white/90 rounded-xl border border-gray-100 py-2.5 flex flex-col items-center gap-1.5 shadow-sm active:scale-95 transition-transform">
                 <div className={`w-8 h-8 rounded-xl ${color} flex items-center justify-center`}>
                   <Icon className="w-3.5 h-3.5" />
-                  <p className="text-[10px] font-semibold text-gray-700 leading-none">{label}</p>
                 </div>
-                
+                <p className="text-[10px] font-semibold text-gray-700 leading-none">{label}</p>
               </div>
             </Link>
           ))}
