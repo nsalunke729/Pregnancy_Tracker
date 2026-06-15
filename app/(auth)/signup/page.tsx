@@ -23,7 +23,10 @@ export default function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: { name },
+        emailRedirectTo: 'https://pregnancy-tracker-pink.vercel.app/onboarding',
+      },
     })
 
     if (error) {

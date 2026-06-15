@@ -44,34 +44,35 @@ export default function OnboardingPage() {
     setLoading(true)
     setError('')
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
 
-    const { data: pregnancy, error: findErr } = await supabase
-      .from('pregnancies')
-      .select('id, partner_id')
-      .eq('join_code', joinCode.toUpperCase().trim())
-      .single()
+    // Direct SELECT/UPDATE would fail — RLS blocks rows where you're not yet
+    // owner_id/partner_id. The RPC runs as security definer and handles both
+    // the lookup and the partner_id update atomically.
+    const { data, error: rpcErr } = await supabase
+      .rpc('join_pregnancy_by_code', { p_join_code: joinCode.trim() })
 
-    if (findErr || !pregnancy) {
+    if (rpcErr) {
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    if (data?.error === 'not_found') {
       setError('Invalid code. Please check and try again.')
       setLoading(false)
-      return
-    }
-
-    if (pregnancy.partner_id) {
+    } else if (data?.error === 'own_pregnancy') {
+      setError('You cannot join your own pregnancy.')
+      setLoading(false)
+    } else if (data?.error === 'already_joined') {
       setError('This pregnancy already has a partner linked.')
       setLoading(false)
-      return
+    } else if (data?.success) {
+      router.push('/dashboard')
+      router.refresh()
+    } else {
+      setError('Unexpected error. Please try again.')
+      setLoading(false)
     }
-
-    const { error: updateErr } = await supabase
-      .from('pregnancies')
-      .update({ partner_id: user.id })
-      .eq('id', pregnancy.id)
-
-    if (updateErr) { setError(updateErr.message); setLoading(false) }
-    else { router.push('/dashboard'); router.refresh() }
   }
 
   if (step === 'choice') {
