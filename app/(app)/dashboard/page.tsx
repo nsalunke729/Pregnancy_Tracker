@@ -130,7 +130,6 @@ export default function DashboardPage() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800">Symptom Guide</p>
           </div>
-          <span className="text-gray-300 text-lg flex-shrink-0">›</span>
         </div>
       </Link>
 
