@@ -69,8 +69,8 @@ export interface WeightLog {
 
 export interface QAItem {
   id: string
-  q: string
-  a: string
+  q: string   // question (pre-visit)
+  a: string   // answer   (post-visit)
 }
 
 export interface Appointment {
