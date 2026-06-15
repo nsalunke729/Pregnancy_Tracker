@@ -2,10 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardBody } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Scale, Calendar, History, LogOut } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { Scale, Calendar, History, LogOut, ChevronRight, Settings } from 'lucide-react'
 import Link from 'next/link'
+import { Fragment } from 'react'
 
 export default function MorePage() {
   const router = useRouter()
@@ -18,9 +18,9 @@ export default function MorePage() {
   }
 
   const MENU_ITEMS = [
-    { href: '/weight',       icon: Scale,    label: 'Weight Tracker',    desc: 'Log weight & view chart' },
-    { href: '/appointments', icon: Calendar, label: 'Appointments',      desc: 'Doctor visits & scans' },
-    { href: '/history',      icon: History,  label: 'History Calendar',  desc: 'View past logs' },
+    { href: '/weight',       icon: Scale,    label: 'Weight Tracker'   },
+    { href: '/appointments', icon: Calendar, label: 'Appointments'     },
+    { href: '/history',      icon: History,  label: 'History'          },
   ]
 
   return (
@@ -29,31 +29,31 @@ export default function MorePage() {
         <h1 className="text-2xl font-bold text-gray-900">More</h1>
       </div>
 
-      <div className="space-y-2">
-        {MENU_ITEMS.map(({ href, icon: Icon, label, desc }) => (
-          <Link key={href} href={href}>
-            <Card className="active:scale-98 transition-transform">
-              <CardBody className="flex items-center gap-4 py-3.5">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-5 h-5 text-rose-500" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-gray-900">{label}</p>
-                  <p className="text-xs text-gray-500">{desc}</p>
-                </div>
-                <span className="ml-auto text-gray-300">›</span>
-              </CardBody>
-            </Card>
+      {/* Compact grouped list */}
+      <Card className="overflow-hidden divide-y divide-gray-100">
+        {MENU_ITEMS.map(({ href, icon: Icon, label }) => (
+          <Link key={href} href={href} className="flex items-center gap-3 px-4 py-3.5 hover:bg-rose-50/60 active:bg-rose-50 transition-colors">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0">
+              <Icon className="w-4 h-4 text-rose-500" />
+            </div>
+            <span className="font-medium text-sm text-gray-900 flex-1">{label}</span>
+            <ChevronRight className="w-4 h-4 text-gray-300" />
           </Link>
         ))}
-      </div>
+      </Card>
 
-      <div className="pt-4">
-        <Button variant="danger" size="lg" className="w-full" onClick={handleSignOut}>
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </Button>
-      </div>
+      {/* Sign out */}
+      <Card className="overflow-hidden">
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-4 py-3.5 text-red-500 hover:bg-red-50 active:bg-red-50 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+            <LogOut className="w-4 h-4 text-red-500" />
+          </div>
+          <span className="font-medium text-sm flex-1 text-left">Sign Out</span>
+        </button>
+      </Card>
     </div>
   )
 }

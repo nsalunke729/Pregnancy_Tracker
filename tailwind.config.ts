@@ -29,11 +29,11 @@ const config: Config = {
   },
   safelist: [
     // EmojiMoodPicker selected states — returned from a switch-case, scanner may miss them
-    'bg-red-500',    'border-red-500',
-    'bg-orange-400', 'border-orange-400',
-    'bg-amber-400',  'border-amber-400',
-    'bg-lime-500',   'border-lime-500',
-    'bg-green-500',  'border-green-500',
+    'bg-red-500',    'border-red-500',    'ring-red-300',
+    'bg-orange-400', 'border-orange-400', 'ring-orange-200',
+    'bg-amber-400',  'border-amber-400',  'ring-amber-200',
+    'bg-lime-500',   'border-lime-500',   'ring-lime-300',
+    'bg-green-500',  'border-green-500',  'ring-green-300',
   ],
   plugins: [],
 }
