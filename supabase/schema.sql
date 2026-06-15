@@ -99,6 +99,44 @@ create table if not exists appointments (
 );
 
 -- =============================================
+-- Helper Functions
+-- =============================================
+
+-- Join a pregnancy by its 6-char code.
+-- Runs as security definer so it can bypass RLS to look up the row — the
+-- joining user is not yet owner_id/partner_id, so a plain SELECT would return
+-- nothing under the default policy.  auth.uid() is still the caller's UID.
+create or replace function join_pregnancy_by_code(p_join_code text)
+returns json language plpgsql security definer as $$
+declare
+  v_id         uuid;
+  v_partner_id uuid;
+  v_owner_id   uuid;
+begin
+  select id, owner_id, partner_id
+    into v_id, v_owner_id, v_partner_id
+    from pregnancies
+   where join_code = upper(trim(p_join_code));
+
+  if v_id is null then
+    return json_build_object('error', 'not_found');
+  end if;
+
+  if v_owner_id = auth.uid() then
+    return json_build_object('error', 'own_pregnancy');
+  end if;
+
+  if v_partner_id is not null then
+    return json_build_object('error', 'already_joined');
+  end if;
+
+  update pregnancies set partner_id = auth.uid() where id = v_id;
+
+  return json_build_object('success', true, 'pregnancy_id', v_id::text);
+end;
+$$;
+
+-- =============================================
 -- Row Level Security
 -- =============================================
 
