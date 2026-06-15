@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
-import { Scale, Calendar, History, LogOut, ChevronRight, Settings } from 'lucide-react'
+import { Scale, Calendar, History, LogOut, ChevronRight, Settings, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MorePage() {
@@ -17,9 +17,10 @@ export default function MorePage() {
   }
 
   const MENU_ITEMS = [
-    { href: '/weight',       icon: Scale,    label: 'Weight Tracker'      },
-    { href: '/appointments', icon: Calendar, label: 'Appointments'        },
-    { href: '/history',      icon: History,  label: 'History'             },
+    { href: '/weight',       icon: Scale,    label: 'Weight Tracker'   },
+    { href: '/appointments', icon: Calendar, label: 'Appointments'     },
+    { href: '/history',      icon: History,  label: 'History'          },
+    { href: '/guide',        icon: BookOpen, label: 'Symptom Guide'    },
     { href: '/settings',     icon: Settings, label: 'Pregnancy Settings'  },
   ]
 

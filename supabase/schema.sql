@@ -95,8 +95,12 @@ create table if not exists appointments (
   type         text    not null,
   location     text,
   notes        text,
+  questions    jsonb   default '[]',  -- [{id, q, a}] — pre-visit questions + doctor answers
   created_at   timestamptz default now()
 );
+
+-- If table already exists without the questions column, run:
+-- alter table appointments add column if not exists questions jsonb default '[]';
 
 -- =============================================
 -- Helper Functions

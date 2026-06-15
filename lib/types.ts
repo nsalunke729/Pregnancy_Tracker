@@ -67,6 +67,12 @@ export interface WeightLog {
   logged_by: string
 }
 
+export interface QAItem {
+  id: string
+  q: string   // question (pre-visit)
+  a: string   // answer   (post-visit)
+}
+
 export interface Appointment {
   id: string
   pregnancy_id: string
@@ -74,4 +80,5 @@ export interface Appointment {
   type: string
   location?: string
   notes?: string
+  questions?: QAItem[]
 }
