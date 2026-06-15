@@ -8,7 +8,7 @@ import { calculateWeek, daysUntilDue, formatDueDate, getFruitSize } from '@/lib/
 import { Pregnancy } from '@/lib/types'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ClipboardList, Pill, Baby, Scale, Calendar, Copy } from 'lucide-react'
+import { ClipboardList, Pill, Baby, Scale, Calendar, Copy, BookOpen } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -64,8 +64,11 @@ export default function DashboardPage() {
     <div className="p-4 space-y-3">
       {/* Page title */}
       <div className="pt-3 pb-1">
-        <h1 className="text-xl font-bold text-gray-900">
-          {pregnancy.baby_name ? `Hello, ${pregnancy.baby_name}! 👋` : 'Good day! 🌸'}
+        <h1 className="text-xl font-bold text-gray-900 flex items-center gap-1.5">
+          <span className="flex-1 min-w-0 truncate">
+            {pregnancy.baby_name ? `Hello, ${pregnancy.baby_name}!` : 'Good day!'}
+          </span>
+          <span className="flex-shrink-0">{pregnancy.baby_name ? '👋' : '🌸'}</span>
         </h1>
       </div>
 
@@ -117,6 +120,20 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Symptom Guide shortcut ── */}
+      <Link href="/guide">
+        <div className="bg-gradient-to-r from-violet-50 to-rose-50 border border-violet-100 rounded-2xl px-4 py-3 flex items-center gap-3 active:scale-98 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+            <BookOpen className="w-4 h-4 text-violet-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-800">Symptom Guide</p>
+            <p className="text-xs text-gray-400">Normal · Tips · Watch · Emergency</p>
+          </div>
+          <span className="text-gray-300 text-lg flex-shrink-0">›</span>
+        </div>
+      </Link>
 
       {/* ── Partner Code ── */}
       <Card>
