@@ -53,11 +53,11 @@ export default function DashboardPage() {
   }
 
   const QUICK_ACTIONS = [
-    { href: '/log',          icon: ClipboardList, label: 'Log',      color: 'bg-rose-50 text-rose-500' },
-    { href: '/medicines',    icon: Pill,          label: 'Medicines', color: 'bg-purple-50 text-purple-500' },
-    { href: '/kicks',        icon: Baby,          label: 'Kicks',     color: 'bg-blue-50 text-blue-500' },
-    { href: '/weight',       icon: Scale,         label: 'Weight',    color: 'bg-green-50 text-green-500' },
-    { href: '/appointments', icon: Calendar,      label: 'Appts',     color: 'bg-orange-50 text-orange-500' },
+    { href: '/log',          icon: ClipboardList, label: 'Log',   color: 'bg-rose-50 text-rose-500' },
+    { href: '/medicines',    icon: Pill,          label: 'Meds',  color: 'bg-purple-50 text-purple-500' },
+    { href: '/kicks',        icon: Baby,          label: 'Kicks', color: 'bg-blue-50 text-blue-500' },
+    { href: '/weight',       icon: Scale,         label: 'Wt.',   color: 'bg-green-50 text-green-500' },
+    { href: '/appointments', icon: Calendar,      label: 'Appts', color: 'bg-orange-50 text-orange-500' },
   ]
 
   return (
@@ -104,14 +104,14 @@ export default function DashboardPage() {
       {/* ── Quick Actions ── */}
       <div>
         <p className="text-xs font-semibold text-gray-500 mb-2">Quick Actions</p>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-5 gap-1.5">
           {QUICK_ACTIONS.map(({ href, icon: Icon, label, color }) => (
             <Link key={href} href={href}>
-              <div className="bg-white/90 rounded-xl border border-gray-100 py-3 px-1 text-center shadow-sm active:scale-95 transition-transform">
-                <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center mx-auto mb-1.5`}>
-                  <Icon className="w-4 h-4" />
+              <div className="bg-white/90 rounded-xl border border-gray-100 py-2.5 flex flex-col items-center gap-1.5 shadow-sm active:scale-95 transition-transform">
+                <div className={`w-8 h-8 rounded-xl ${color} flex items-center justify-center`}>
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
-                <p className="text-[10px] font-semibold text-gray-700 leading-tight">{label}</p>
+                <p className="text-[10px] font-semibold text-gray-700 leading-none">{label}</p>
               </div>
             </Link>
           ))}

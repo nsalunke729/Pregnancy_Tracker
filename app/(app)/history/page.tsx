@@ -333,115 +333,94 @@ export default function HistoryPage() {
             )}
 
             {!detailLoading && dayDetail && (
-              <div className="space-y-4">
-                {dayDetail.mood && (
-                  <div className={cn('flex items-center gap-3 px-4 py-3 rounded-2xl', MOOD_BG[dayDetail.mood])}>
-                    <span className="text-3xl">{MOOD_EMOJI[dayDetail.mood]}</span>
-                    <div>
-                      <p className="text-xs font-semibold opacity-60">Mood</p>
-                      <p className="text-base font-bold">{MOOD_LABEL[dayDetail.mood]}</p>
-                    </div>
-                  </div>
-                )}
+              <div className="space-y-3">
 
-                {(!!dayDetail.water_glasses || !!dayDetail.sleep_hours) && (
-                  <div className="grid grid-cols-2 gap-3">
+                {/* ── Compact stats pill row ── */}
+                {(dayDetail.mood || dayDetail.water_glasses || dayDetail.sleep_hours || dayDetail.weight_kg) && (
+                  <div className="flex flex-wrap gap-2">
+                    {dayDetail.mood && (
+                      <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold', MOOD_BG[dayDetail.mood])}>
+                        {MOOD_EMOJI[dayDetail.mood]} {MOOD_LABEL[dayDetail.mood]}
+                      </span>
+                    )}
                     {!!dayDetail.water_glasses && (
-                      <div className="bg-blue-50 rounded-2xl px-4 py-3">
-                        <p className="text-[11px] text-blue-400 font-semibold">💧 WATER</p>
-                        <p className="text-2xl font-bold text-blue-600">{dayDetail.water_glasses}</p>
-                        <p className="text-xs text-blue-400">glasses</p>
-                      </div>
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600">
+                        💧 {dayDetail.water_glasses} glasses
+                      </span>
                     )}
                     {!!dayDetail.sleep_hours && (
-                      <div className="bg-indigo-50 rounded-2xl px-4 py-3">
-                        <p className="text-[11px] text-indigo-400 font-semibold">😴 SLEEP</p>
-                        <p className="text-2xl font-bold text-indigo-600">{dayDetail.sleep_hours}</p>
-                        <p className="text-xs text-indigo-400">hours</p>
-                      </div>
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600">
+                        😴 {dayDetail.sleep_hours}h sleep
+                      </span>
+                    )}
+                    {dayDetail.weight_kg && (
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">
+                        ⚖️ {dayDetail.weight_kg} kg
+                      </span>
                     )}
                   </div>
                 )}
 
-                {dayDetail.weight_kg && (
-                  <div className="bg-emerald-50 rounded-2xl px-4 py-3 flex items-center gap-3">
-                    <span className="text-2xl">⚖️</span>
-                    <div>
-                      <p className="text-[11px] text-emerald-500 font-semibold">WEIGHT</p>
-                      <p className="text-base font-bold text-emerald-700">{dayDetail.weight_kg} kg</p>
-                    </div>
-                  </div>
-                )}
-
+                {/* ── Symptoms ── */}
                 {dayDetail.symptoms.length > 0 && (
                   <div>
-                    <p className="text-[11px] font-semibold text-gray-400 tracking-wide mb-2">🤒 SYMPTOMS ({dayDetail.symptoms.length})</p>
-                    <div className="space-y-2">
-                      {dayDetail.symptoms.map((s) => {
-                        const pct   = (s.severity / 10) * 100
-                        const color = s.severity >= 7 ? 'bg-red-400' : s.severity >= 4 ? 'bg-orange-400' : 'bg-yellow-400'
-                        return (
-                          <div key={s.symptom_type} className="bg-gray-50 rounded-xl px-3 py-2.5">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-sm font-medium text-gray-800">{s.symptom_type}</span>
-                              <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full',
-                                s.severity >= 7 ? 'bg-red-100 text-red-600' :
-                                s.severity >= 4 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600')}>
-                                {s.severity}/10
-                              </span>
-                            </div>
-                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                              <div className={cn('h-full rounded-full', color)} style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        )
-                      })}
+                    <p className="text-[11px] font-semibold text-gray-400 tracking-wide mb-2">🤒 SYMPTOMS</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {dayDetail.symptoms.map((s) => (
+                        <span key={s.symptom_type} className={cn(
+                          'px-2.5 py-1 rounded-full text-xs font-semibold',
+                          s.severity >= 7 ? 'bg-red-100 text-red-700' :
+                          s.severity >= 4 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                        )}>
+                          {s.symptom_type} · {s.severity}/10
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
 
+                {/* ── Medicines ── */}
                 {dayDetail.medicines.length > 0 && (
                   <div>
                     <p className="text-[11px] font-semibold text-gray-400 tracking-wide mb-2">💊 MEDICINES</p>
-                    <div className="space-y-1.5">
+                    <div className="grid grid-cols-2 gap-1.5">
                       {dayDetail.medicines.map((m) => (
-                        <div key={m.name} className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl', m.taken ? 'bg-green-50' : 'bg-gray-50')}>
-                          <span className="text-base flex-shrink-0">{m.taken ? '✅' : '⬜'}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className={cn('text-sm font-medium', m.taken ? 'text-green-800' : 'text-gray-400 line-through')}>{m.name}</p>
-                            {m.dosage && <p className="text-xs text-gray-400">{m.dosage}</p>}
-                          </div>
-                          {m.taken && <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Taken</span>}
+                        <div key={m.name} className={cn(
+                          'flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium',
+                          m.taken ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'
+                        )}>
+                          <span className="flex-shrink-0">{m.taken ? '✅' : '⬜'}</span>
+                          <span className={cn('truncate', !m.taken && 'line-through')}>{m.name}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
+                {/* ── Kicks ── */}
                 {dayDetail.kicks.length > 0 && (
                   <div>
-                    <p className="text-[11px] font-semibold text-gray-400 tracking-wide mb-2">👶 KICK SESSIONS</p>
-                    <div className="space-y-2">
+                    <p className="text-[11px] font-semibold text-gray-400 tracking-wide mb-2">👶 KICKS</p>
+                    <div className="space-y-1.5">
                       {dayDetail.kicks.map((k, i) => (
-                        <div key={i} className="bg-purple-50 rounded-xl px-4 py-3 flex items-center justify-between">
-                          <div>
-                            <p className="text-base font-bold text-purple-700">{k.kick_count} kicks</p>
-                            <p className="text-xs text-purple-400">{format(parseISO(k.created_at), 'h:mm a')}</p>
-                          </div>
-                          <div className="text-right">
-                            {k.duration_minutes && <p className="text-sm font-semibold text-purple-600">{k.duration_minutes} min</p>}
-                            {k.kick_count >= 10 && <p className="text-xs text-green-500 font-medium">✓ Goal met</p>}
-                          </div>
+                        <div key={i} className="flex items-center justify-between bg-purple-50 rounded-xl px-3 py-2">
+                          <span className="text-sm font-bold text-purple-700">{k.kick_count} kicks</span>
+                          <span className="text-xs text-purple-400">
+                            {format(parseISO(k.created_at), 'h:mm a')}
+                            {k.duration_minutes ? ` · ${k.duration_minutes}min` : ''}
+                            {k.kick_count >= 10 ? ' · ✓' : ''}
+                          </span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
+                {/* ── Notes ── */}
                 {dayDetail.notes && (
-                  <div className="bg-amber-50 rounded-2xl px-4 py-3">
+                  <div className="bg-amber-50 rounded-xl px-3 py-2.5">
                     <p className="text-[11px] text-amber-500 font-semibold mb-1">📝 NOTES</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">{dayDetail.notes}</p>
+                    <p className="text-xs text-gray-700 leading-relaxed">{dayDetail.notes}</p>
                   </div>
                 )}
               </div>
