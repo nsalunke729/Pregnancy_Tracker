@@ -177,7 +177,7 @@ export default function GuidePage() {
               tab === t.id ? tabActive[t.color] : tabInactive
             )}
           >
-            <span className="text-base leading-none">{t.emoji}</span>
+            <span className="text-base leading-none flex-shrink-0">{t.emoji}</span>
             <span>{t.label}</span>
           </button>
         ))}
@@ -187,15 +187,18 @@ export default function GuidePage() {
       {tab === 'normal' && (
         <div className="space-y-3">
           <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3">
-            <p className="text-sm font-bold text-green-800">✅ Safe to Ignore</p>
+            <div className="flex items-center gap-1.5">
+              <span className="flex-shrink-0 leading-none">✅</span>
+              <p className="text-sm font-bold text-green-800">Safe to Ignore</p>
+            </div>
             <p className="text-xs text-green-600 mt-0.5">
               These are caused by rising pregnancy hormones (progesterone &amp; hCG) and are signs the pregnancy is progressing normally.
             </p>
           </div>
           {NORMAL_SYMPTOMS.map((s) => (
-            <div key={s.name} className="bg-white/90 rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex gap-3">
-              <span className="text-2xl flex-shrink-0">{s.emoji}</span>
-              <div>
+            <div key={s.name} className="bg-white/90 rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex items-start gap-3">
+              <span className="text-2xl flex-shrink-0 leading-none mt-0.5">{s.emoji}</span>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900">{s.name}</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{s.why}</p>
               </div>
@@ -208,20 +211,23 @@ export default function GuidePage() {
       {tab === 'tips' && (
         <div className="space-y-3">
           <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3">
-            <p className="text-sm font-bold text-blue-800">💡 Daily Management</p>
+            <div className="flex items-center gap-1.5">
+              <span className="flex-shrink-0 leading-none">💡</span>
+              <p className="text-sm font-bold text-blue-800">Daily Management</p>
+            </div>
             <p className="text-xs text-blue-600 mt-0.5">Simple things that help with common discomforts.</p>
           </div>
           {TIPS.map((section) => (
             <div key={section.title} className="bg-white/90 rounded-2xl border border-gray-100 shadow-sm px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{section.emoji}</span>
+                <span className="text-xl flex-shrink-0 leading-none">{section.emoji}</span>
                 <p className="text-sm font-bold text-gray-900">{section.title}</p>
               </div>
               <ul className="space-y-1.5">
                 {section.tips.map((tip, i) => (
                   <li key={i} className="flex gap-2 text-xs text-gray-600 leading-relaxed">
                     <span className="text-gray-300 mt-0.5 flex-shrink-0">•</span>
-                    {tip}
+                    <span>{tip}</span>
                   </li>
                 ))}
               </ul>
@@ -234,7 +240,10 @@ export default function GuidePage() {
       {tab === 'watch' && (
         <div className="space-y-3">
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-            <p className="text-sm font-bold text-amber-800">👀 Monitor Carefully</p>
+            <div className="flex items-center gap-1.5">
+              <span className="flex-shrink-0 leading-none">👀</span>
+              <p className="text-sm font-bold text-amber-800">Monitor Carefully</p>
+            </div>
             <p className="text-xs text-amber-600 mt-0.5">
               These can be normal OR a sign of something that needs attention. Knowing the difference matters.
             </p>
@@ -242,20 +251,29 @@ export default function GuidePage() {
           {WATCH.map((w) => (
             <div key={w.title} className="bg-white/90 rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-                <span className="text-2xl">{w.emoji}</span>
+                <span className="text-2xl flex-shrink-0 leading-none">{w.emoji}</span>
                 <p className="text-sm font-bold text-gray-900">{w.title}</p>
               </div>
               <div className="px-4 py-3 space-y-2.5">
                 <div>
-                  <p className="text-[10px] font-bold text-green-600 tracking-wide mb-1">✅ WHEN IT&apos;S OKAY</p>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="flex-shrink-0 text-[10px] leading-none">✅</span>
+                    <p className="text-[10px] font-bold text-green-600 tracking-wide">WHEN IT&apos;S OKAY</p>
+                  </div>
                   <p className="text-xs text-gray-600 leading-relaxed">{w.safe}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-blue-600 tracking-wide mb-1">📋 WHAT TO DO</p>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="flex-shrink-0 text-[10px] leading-none">📋</span>
+                    <p className="text-[10px] font-bold text-blue-600 tracking-wide">WHAT TO DO</p>
+                  </div>
                   <p className="text-xs text-gray-600 leading-relaxed">{w.action}</p>
                 </div>
                 <div className="bg-red-50 rounded-xl px-3 py-2">
-                  <p className="text-[10px] font-bold text-red-600 tracking-wide mb-1">🚨 SEEK HELP IF</p>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="flex-shrink-0 text-[10px] leading-none">🚨</span>
+                    <p className="text-[10px] font-bold text-red-600 tracking-wide">SEEK HELP IF</p>
+                  </div>
                   <p className="text-xs text-red-700 leading-relaxed">{w.notSafe}</p>
                 </div>
               </div>
@@ -268,20 +286,23 @@ export default function GuidePage() {
       {tab === 'emergency' && (
         <div className="space-y-3">
           <div className="bg-red-50 border border-red-300 rounded-2xl px-4 py-3">
-            <p className="text-sm font-bold text-red-800">🚨 Go to Emergency Immediately</p>
+            <div className="flex items-center gap-1.5">
+              <span className="flex-shrink-0 leading-none">🚨</span>
+              <p className="text-sm font-bold text-red-800">Go to Emergency Immediately</p>
+            </div>
             <p className="text-xs text-red-600 mt-0.5">
               If you experience ANY of these, do not wait for a scheduled appointment.
               Call your maternity hospital emergency line or go straight to the Emergency Room.
             </p>
           </div>
           {EMERGENCY.map((e, i) => (
-            <div key={e.sign} className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex gap-3">
+            <div key={e.sign} className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-3">
               <div className="w-8 h-8 rounded-xl bg-red-500 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
                 {i + 1}
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-lg">{e.emoji}</span>
+                  <span className="text-lg flex-shrink-0 leading-none">{e.emoji}</span>
                   <p className="text-sm font-bold text-red-900">{e.sign}</p>
                 </div>
                 <p className="text-xs text-red-700 leading-relaxed">{e.detail}</p>
