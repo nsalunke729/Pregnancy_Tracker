@@ -215,7 +215,11 @@ export default function LogPage() {
                     <p className={cn('text-sm font-medium', taken ? 'line-through text-gray-400' : 'text-gray-800')}>
                       {med.name}
                     </p>
-                    {med.dosage && <p className="text-xs text-gray-400">{med.dosage}</p>}
+                    {(med.dosage || med.times.length > 0) && (
+                      <p className="text-xs text-gray-400">
+                        {[med.dosage, med.times.join(' · ')].filter(Boolean).join(' — ')}
+                      </p>
+                    )}
                   </div>
                   {taken && <span className="text-xs font-semibold text-green-600">✓</span>}
                 </button>

@@ -41,6 +41,8 @@ export interface Medicine {
   dosage?: string
   times: string[]
   active: boolean
+  start_date?: string
+  duration_days?: number  // undefined/null = ongoing, no end date
 }
 
 export interface MedicineLog {
