@@ -82,3 +82,11 @@ export interface Appointment {
   notes?: string
   questions?: QAItem[]
 }
+
+export interface Contraction {
+  id: string
+  pregnancy_id: string
+  started_at: string
+  duration_seconds: number
+  created_at: string
+}

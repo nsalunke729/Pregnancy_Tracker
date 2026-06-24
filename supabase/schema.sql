@@ -102,6 +102,15 @@ create table if not exists appointments (
 -- If table already exists without the questions column, run:
 -- alter table appointments add column if not exists questions jsonb default '[]';
 
+-- ── Contractions ───────────────────────────────
+create table if not exists contractions (
+  id               uuid    default uuid_generate_v4() primary key,
+  pregnancy_id     uuid    references pregnancies(id) on delete cascade not null,
+  started_at       timestamptz not null,
+  duration_seconds integer not null,
+  created_at       timestamptz default now()
+);
+
 -- =============================================
 -- Helper Functions
 -- =============================================
@@ -153,6 +162,7 @@ alter table medicine_logs enable row level security;
 alter table kick_sessions enable row level security;
 alter table weight_logs  enable row level security;
 alter table appointments enable row level security;
+alter table contractions enable row level security;
 
 -- Profiles
 create policy "own_profile_select" on profiles for select using (auth.uid() = id);
@@ -208,4 +218,8 @@ create policy "weight_all" on weight_logs for all
 
 -- Appointments
 create policy "appt_all" on appointments for all
+  using (user_has_pregnancy_access(pregnancy_id));
+
+-- Contractions
+create policy "contractions_all" on contractions for all
   using (user_has_pregnancy_access(pregnancy_id));
