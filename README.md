@@ -4,6 +4,8 @@ A beautiful, couple-shared Progressive Web App (PWA) to track your pregnancy jou
 
 Install it on iPhone via Safari "Add to Home Screen" and it works like a native app.
 
+See [CHANGELOG.md](./CHANGELOG.md) for release history. Current version: **2.0.0**.
+
 ---
 
 ## Features
@@ -18,8 +20,8 @@ Install it on iPhone via Safari "Add to Home Screen" and it works like a native 
 - **History** — Week or month calendar view; tap any day for the full log (mood, symptoms + severity, water, sleep, medicines, kicks, weight, notes); **export your entire history as a CSV** to share with your doctor or midwife
 - **Partner Sharing** — Join code so both partners see the same pregnancy record
 - **Forgot Password** — Self-service password reset via email
-- **First-Time Welcome Tour** — New accounts get a short, skippable tour of the app on their first Dashboard visit
-- **PWA** — Installable on iPhone (iOS 16.4+) and Android; offline banner when connectivity drops
+- **First-Time Welcome Tour** — New accounts get a short, skippable tour of the app on their first Dashboard visit; anyone can rewatch it any time from More → "Replay Welcome Tour"
+- **PWA** — Installable on iPhone (iOS 16.4+) and Android, with a real branded icon (favicon, home-screen icon, Apple touch icon — generated from the app logo); offline banner when connectivity drops
 - **Push Notifications** — Medicine reminders at configurable times (morning / afternoon / evening / night)
 
 ---
@@ -208,6 +210,7 @@ __tests__/                      # Vitest unit tests
 public/
   manifest.json                 # PWA manifest
   sw.js                          # Service worker for push notifications
+  icons/                          # Favicon, PWA icons, Apple touch icon (generated from logo-source.png)
 supabase/
   schema.sql                     # Full database schema with RLS policies
 middleware.ts                    # Auth guard -- redirects to /login if not signed in
