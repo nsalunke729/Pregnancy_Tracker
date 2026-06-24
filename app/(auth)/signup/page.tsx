@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { SITE_URL } from '@/lib/config'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -25,7 +26,7 @@ export default function SignupPage() {
       password,
       options: {
         data: { name },
-        emailRedirectTo: `${window.location.origin}/onboarding`,
+        emailRedirectTo: `${SITE_URL}/onboarding`,
       },
     })
 
