@@ -26,9 +26,12 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
-  const isAuthPath = path.startsWith('/login') || path.startsWith('/signup')
+  const isAuthPath = path.startsWith('/login') || path.startsWith('/signup') || path.startsWith('/forgot-password')
+  // Reached via the password-recovery email link -- never bounce away from
+  // here, whether or not Supabase has already established a recovery session.
+  const isResetPassword = path.startsWith('/reset-password')
 
-  if (!user && !isAuthPath) {
+  if (!user && !isAuthPath && !isResetPassword) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

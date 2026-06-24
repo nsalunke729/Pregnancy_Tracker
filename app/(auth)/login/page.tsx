@@ -65,6 +65,12 @@ export default function LoginPage() {
             <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-xl">{error}</div>
           )}
 
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-xs text-rose-400 font-medium">
+              Forgot password?
+            </Link>
+          </div>
+
           <Button type="submit" size="lg" className="w-full mt-2" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In'}
           </Button>

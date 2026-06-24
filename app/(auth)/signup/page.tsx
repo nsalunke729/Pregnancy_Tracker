@@ -25,7 +25,7 @@ export default function SignupPage() {
       password,
       options: {
         data: { name },
-        emailRedirectTo: 'https://pregnancy-tracker-pink.vercel.app/onboarding',
+        emailRedirectTo: `${window.location.origin}/onboarding`,
       },
     })
 
