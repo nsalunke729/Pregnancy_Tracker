@@ -9,28 +9,45 @@ import { Pregnancy } from '@/lib/types'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ClipboardList, Pill, Baby, Scale, Calendar, Copy, BookOpen } from 'lucide-react'
+import { WelcomeTour } from '@/components/WelcomeTour'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [pregnancy, setPregnancy] = useState<Pregnancy | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [copied,    setCopied]    = useState(false)
+  const [userId,    setUserId]    = useState<string | null>(null)
+  const [showTour,  setShowTour]  = useState(false)
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data } = await supabase
-        .from('pregnancies').select('*')
-        .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
-        .order('created_at', { ascending: false }).limit(1).single()
-      if (!data) router.push('/onboarding')
-      else setPregnancy(data)
+      setUserId(user.id)
+
+      const [{ data }, { data: profile }] = await Promise.all([
+        supabase
+          .from('pregnancies').select('*')
+          .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
+          .order('created_at', { ascending: false }).limit(1).single(),
+        supabase.from('profiles').select('tour_seen').eq('id', user.id).single(),
+      ])
+
+      if (!data) { router.push('/onboarding'); return }
+      setPregnancy(data)
+      if (profile && profile.tour_seen === false) setShowTour(true)
       setLoading(false)
     }
     load()
   }, [router])
+
+  async function handleTourComplete() {
+    setShowTour(false)
+    if (!userId) return
+    const supabase = createClient()
+    await supabase.from('profiles').update({ tour_seen: true }).eq('id', userId)
+  }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -62,6 +79,8 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 space-y-3">
+      {showTour && <WelcomeTour onComplete={handleTourComplete} />}
+
       {/* Page title */}
       <div className="pt-3 pb-1">
         <h1 className="text-xl font-bold text-gray-900 flex items-center gap-1.5">
