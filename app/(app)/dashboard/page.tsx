@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateWeek, daysUntilDue, formatDueDate, getFruitSize } from '@/lib/pregnancy'
@@ -11,8 +11,11 @@ import { Button } from '@/components/ui/button'
 import { ClipboardList, Pill, Baby, Scale, Calendar, Copy, BookOpen } from 'lucide-react'
 import { WelcomeTour } from '@/components/WelcomeTour'
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const forceTour = searchParams.get('tour') === '1'
+
   const [pregnancy, setPregnancy] = useState<Pregnancy | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [copied,    setCopied]    = useState(false)
@@ -36,11 +39,11 @@ export default function DashboardPage() {
 
       if (!data) { router.push('/onboarding'); return }
       setPregnancy(data)
-      if (profile && profile.tour_seen === false) setShowTour(true)
+      if (forceTour || (profile && profile.tour_seen === false)) setShowTour(true)
       setLoading(false)
     }
     load()
-  }, [router])
+  }, [router, forceTour])
 
   async function handleTourComplete() {
     setShowTour(false)
@@ -171,5 +174,13 @@ export default function DashboardPage() {
         </CardBody>
       </Card>
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
   )
 }

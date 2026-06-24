@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
-import { Scale, Calendar, History, LogOut, ChevronRight, Settings, BookOpen, Timer } from 'lucide-react'
+import { Scale, Calendar, History, LogOut, ChevronRight, Settings, BookOpen, Timer, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MorePage() {
@@ -23,6 +23,7 @@ export default function MorePage() {
     { href: '/history',      icon: History,  label: 'History'          },
     { href: '/guide',        icon: BookOpen, label: 'Symptom Guide'    },
     { href: '/settings',     icon: Settings, label: 'Pregnancy Settings'  },
+    { href: '/dashboard?tour=1', icon: HelpCircle, label: 'Replay Welcome Tour' },
   ]
 
   return (
