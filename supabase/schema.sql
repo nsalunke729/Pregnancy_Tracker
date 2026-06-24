@@ -49,14 +49,20 @@ create table if not exists symptoms (
 
 -- ── Medicines ──────────────────────────────────
 create table if not exists medicines (
-  id           uuid    default uuid_generate_v4() primary key,
-  pregnancy_id uuid    references pregnancies(id) on delete cascade not null,
-  name         text    not null,
-  dosage       text,
-  times        text[]  default '{}',
-  active       boolean default true,
-  created_at   timestamptz default now()
+  id            uuid    default uuid_generate_v4() primary key,
+  pregnancy_id  uuid    references pregnancies(id) on delete cascade not null,
+  name          text    not null,
+  dosage        text,
+  times         text[]  default '{}',
+  active        boolean default true,
+  start_date    date    default current_date,
+  duration_days integer,  -- null = ongoing/no end date; e.g. 7 = "take for 1 week"
+  created_at    timestamptz default now()
 );
+
+-- If table already exists without these columns, run:
+-- alter table medicines add column if not exists start_date date default current_date;
+-- alter table medicines add column if not exists duration_days integer;
 
 -- ── Medicine Logs ──────────────────────────────
 create table if not exists medicine_logs (

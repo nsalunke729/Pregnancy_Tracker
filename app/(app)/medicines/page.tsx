@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Medicine, MedicineLog } from '@/lib/types'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, X, Check, Bell, BellOff, Clock, Pencil } from 'lucide-react'
+import { Plus, X, Check, Bell, BellOff, Clock, Pencil, CalendarClock } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
@@ -14,6 +14,7 @@ import {
   registerServiceWorker, checkAndFireMedicineReminders,
   getNextReminderLabel, MedicineForReminder,
 } from '@/lib/notifications'
+import { getCourseStatus, DURATION_PRESETS } from '@/lib/medicine'
 
 const TIME_OPTIONS = [
   { label: 'Morning',   emoji: '🌅' },
@@ -36,15 +37,17 @@ export default function MedicinesPage() {
   const [notifPerm,   setNotifPerm]   = useState<ReturnType<typeof getNotificationPermission>>('default')
 
   // Add form
-  const [name,   setName]   = useState('')
-  const [dosage, setDosage] = useState('')
-  const [times,  setTimes]  = useState<string[]>(['Morning'])
+  const [name,     setName]     = useState('')
+  const [dosage,   setDosage]   = useState('')
+  const [times,    setTimes]    = useState<string[]>(['Morning'])
+  const [duration, setDuration] = useState<number | null>(null)
 
   // Edit form
-  const [editingId,   setEditingId]   = useState<string | null>(null)
-  const [editName,    setEditName]    = useState('')
-  const [editDosage,  setEditDosage]  = useState('')
-  const [editTimes,   setEditTimes]   = useState<string[]>([])
+  const [editingId,    setEditingId]    = useState<string | null>(null)
+  const [editName,     setEditName]     = useState('')
+  const [editDosage,   setEditDosage]   = useState('')
+  const [editTimes,    setEditTimes]    = useState<string[]>([])
+  const [editDuration, setEditDuration] = useState<number | null>(null)
 
   useEffect(() => {
     load()
@@ -53,8 +56,9 @@ export default function MedicinesPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!medicines.length) return
-    const meds: MedicineForReminder[] = medicines.map((m) => ({ id: m.id, name: m.name, times: m.times }))
+    const active = medicines.filter((m) => !getCourseStatus(m).ended)
+    if (!active.length) return
+    const meds: MedicineForReminder[] = active.map((m) => ({ id: m.id, name: m.name, times: m.times }))
     checkAndFireMedicineReminders(meds, logs)
     intervalRef.current = setInterval(() => checkAndFireMedicineReminders(meds, logs), 60_000)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
@@ -105,11 +109,14 @@ export default function MedicinesPage() {
     const supabase = createClient()
     const { data } = await supabase
       .from('medicines')
-      .insert({ pregnancy_id: pregnancyId, name, dosage: dosage || null, times, active: true })
+      .insert({
+        pregnancy_id: pregnancyId, name, dosage: dosage || null, times, active: true,
+        start_date: today, duration_days: duration,
+      })
       .select().single()
     if (data) {
       setMedicines((prev) => [...prev, data])
-      setName(''); setDosage(''); setTimes(['Morning']); setShowForm(false)
+      setName(''); setDosage(''); setTimes(['Morning']); setDuration(null); setShowForm(false)
     }
     setSaving(false)
   }
@@ -120,6 +127,7 @@ export default function MedicinesPage() {
     setEditName(med.name)
     setEditDosage(med.dosage ?? '')
     setEditTimes([...med.times])
+    setEditDuration(med.duration_days ?? null)
   }
 
   async function saveEdit(e: React.FormEvent) {
@@ -129,7 +137,7 @@ export default function MedicinesPage() {
     const supabase = createClient()
     const { data } = await supabase
       .from('medicines')
-      .update({ name: editName, dosage: editDosage || null, times: editTimes })
+      .update({ name: editName, dosage: editDosage || null, times: editTimes, duration_days: editDuration })
       .eq('id', editingId)
       .select().single()
     if (data) {
@@ -166,10 +174,13 @@ export default function MedicinesPage() {
     </div>
   )
 
-  const allTaken   = medicines.length > 0 && medicines.every((m) => logs[m.id])
-  const takenCount = medicines.filter((m) => logs[m.id]).length
+  const current   = medicines.filter((m) => !getCourseStatus(m).ended)
+  const completed = medicines.filter((m) => getCourseStatus(m).ended)
+
+  const allTaken   = current.length > 0 && current.every((m) => logs[m.id])
+  const takenCount = current.filter((m) => logs[m.id]).length
   const nextReminder = getNextReminderLabel(
-    medicines.map((m) => ({ id: m.id, name: m.name, times: m.times }))
+    current.map((m) => ({ id: m.id, name: m.name, times: m.times }))
   )
 
   return (
@@ -211,19 +222,19 @@ export default function MedicinesPage() {
       )}
 
       {/* Progress summary */}
-      {medicines.length > 0 && (
+      {current.length > 0 && (
         <Card className={allTaken ? 'bg-green-50 border-green-200' : ''}>
           <CardBody className="py-3">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold text-gray-700">Today&apos;s Progress</p>
               <span className={cn('text-sm font-bold', allTaken ? 'text-green-600' : 'text-rose-500')}>
-                {takenCount}/{medicines.length}
+                {takenCount}/{current.length}
               </span>
             </div>
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={cn('h-full rounded-full transition-all', allTaken ? 'bg-green-500' : 'bg-rose-500')}
-                style={{ width: `${medicines.length ? (takenCount / medicines.length) * 100 : 0}%` }}
+                style={{ width: `${current.length ? (takenCount / current.length) * 100 : 0}%` }}
               />
             </div>
             {allTaken && <p className="text-xs text-green-600 font-medium mt-2">🎉 All medicines taken today!</p>}
@@ -266,6 +277,18 @@ export default function MedicinesPage() {
                   })}
                 </div>
               </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-2 block">Duration</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {DURATION_PRESETS.map(({ label, value }) => (
+                    <button key={label} type="button" onClick={() => setDuration(value)}
+                      className={cn('px-2 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all cursor-pointer',
+                        duration === value ? 'bg-rose-500 text-white border-rose-500' : 'bg-gray-100 text-gray-700 border-gray-100 hover:bg-gray-200')}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="flex gap-2 pt-1">
                 <Button type="submit" className="flex-1" disabled={saving || !name || times.length === 0}>
                   {saving ? 'Adding…' : 'Add Medicine'}
@@ -287,9 +310,10 @@ export default function MedicinesPage() {
       ) : (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-gray-400 tracking-wide">TAP TO MARK AS TAKEN</p>
-          {medicines.map((med) => {
+          {current.map((med) => {
             const taken = logs[med.id] ?? false
             const isEditing = editingId === med.id
+            const course = getCourseStatus(med)
 
             if (isEditing) {
               return (
@@ -326,6 +350,18 @@ export default function MedicinesPage() {
                           })}
                         </div>
                       </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 mb-2 block">Duration</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {DURATION_PRESETS.map(({ label, value }) => (
+                            <button key={label} type="button" onClick={() => setEditDuration(value)}
+                              className={cn('px-2 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all cursor-pointer',
+                                editDuration === value ? 'bg-rose-500 text-white border-rose-500' : 'bg-gray-100 text-gray-700 border-gray-100 hover:bg-gray-200')}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <div className="flex gap-2">
                         <Button type="submit" className="flex-1" disabled={saving || !editName || editTimes.length === 0}>
                           {saving ? 'Saving…' : 'Save Changes'}
@@ -357,6 +393,12 @@ export default function MedicinesPage() {
                   <p className="text-xs text-gray-400 mt-0.5">
                     {[med.dosage, med.times.join(' · ')].filter(Boolean).join(' — ')}
                   </p>
+                  {!course.ongoing && (
+                    <p className="text-[11px] text-purple-500 font-medium mt-0.5 flex items-center gap-1">
+                      <CalendarClock className="w-3 h-3" />
+                      {course.daysLeft === 0 ? 'Last day' : `${course.daysLeft}d left`}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   {taken && <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ Done</span>}
@@ -378,6 +420,35 @@ export default function MedicinesPage() {
               </button>
             )
           })}
+        </div>
+      )}
+
+      {/* Completed courses */}
+      {completed.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-gray-400 tracking-wide">COMPLETED COURSES</p>
+          {completed.map((med) => (
+            <Card key={med.id} className="opacity-60">
+              <CardBody className="flex items-center gap-3 py-3">
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-gray-500">{med.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {[med.dosage, med.times.join(' · ')].filter(Boolean).join(' — ')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => deleteMedicine(med.id)}
+                  className="text-gray-300 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-50 flex-shrink-0"
+                  title="Delete"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </CardBody>
+            </Card>
+          ))}
         </div>
       )}
     </div>
