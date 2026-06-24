@@ -1,19 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { SITE_URL } from '@/lib/config'
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail]     = useState('')
-  const [error, setError]     = useState('')
-  const [sent, setSent]       = useState(false)
-  const [loading, setLoading] = useState(false)
+const COOLDOWN_SECONDS = 60
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+export default function ForgotPasswordPage() {
+  const [email, setEmail]       = useState('')
+  const [error, setError]       = useState('')
+  const [sent, setSent]         = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const [cooldown, setCooldown] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current) }, [])
+
+  function startCooldown() {
+    setCooldown(COOLDOWN_SECONDS)
+    timerRef.current = setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current)
+          return 0
+        }
+        return c - 1
+      })
+    }, 1000)
+  }
+
+  async function sendResetEmail() {
+    if (cooldown > 0) return
     setLoading(true)
     setError('')
     const supabase = createClient()
@@ -26,6 +45,12 @@ export default function ForgotPasswordPage() {
       return
     }
     setSent(true)
+    startCooldown()
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    sendResetEmail()
   }
 
   return (
@@ -40,9 +65,20 @@ export default function ForgotPasswordPage() {
         </div>
 
         {sent ? (
-          <div className="bg-green-50 text-green-700 text-sm px-4 py-3 rounded-xl text-center">
-            If an account exists for <span className="font-semibold">{email}</span>, a password
-            reset link is on its way.
+          <div className="space-y-3">
+            <div className="bg-green-50 text-green-700 text-sm px-4 py-3 rounded-xl text-center">
+              If an account exists for <span className="font-semibold">{email}</span>, a password
+              reset link is on its way.
+            </div>
+            <Button
+              size="lg"
+              variant="ghost"
+              className="w-full"
+              disabled={cooldown > 0 || loading}
+              onClick={sendResetEmail}
+            >
+              {cooldown > 0 ? `Resend in ${cooldown}s` : loading ? 'Sending…' : 'Resend Link'}
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
