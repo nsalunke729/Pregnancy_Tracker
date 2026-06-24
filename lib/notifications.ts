@@ -36,6 +36,24 @@ export async function registerServiceWorker(): Promise<void> {
   }
 }
 
+function readReminderFlag(key: string): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem(key) !== null
+  } catch {
+    return false
+  }
+}
+
+function writeReminderFlag(key: string): void {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(key, '1')
+  } catch {
+    // Storage blocked (private browsing / restricted PWA context) — reminder
+    // may re-fire next check, which is preferable to throwing and silently
+    // dropping the medicine reminder altogether.
+  }
+}
+
 async function fireNotification(title: string, body: string, tag: string) {
   const reg = 'serviceWorker' in navigator
     ? await navigator.serviceWorker.ready.catch(() => null)
@@ -69,7 +87,7 @@ export function checkAndFireMedicineReminders(
     if (h !== hour || m >= 10) continue
 
     const storageKey = `reminder_${timeName}_${now.toDateString()}`
-    if (typeof localStorage !== 'undefined' && localStorage.getItem(storageKey)) continue
+    if (readReminderFlag(storageKey)) continue
 
     const pending = medicines.filter(
       (med) => med.times.includes(timeName) && !takenMap[med.id]
@@ -84,9 +102,7 @@ export function checkAndFireMedicineReminders(
       storageKey
     )
 
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(storageKey, '1')
-    }
+    writeReminderFlag(storageKey)
   }
 }
 
