@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Favicon and `robots.txt` were silently redirected to `/login`** — the auth middleware's matcher didn't exclude the routes Next.js auto-generates from `app/icon.png` and `app/robots.ts`; unauthenticated requests for either got a 307 to the login page instead of the real content
+- **No `<link rel="icon">` tag was emitted at all** — an explicit `metadata.icons` object (set for `apple`) suppresses Next's automatic file-convention detection of `app/icon.png`; it now has to be listed there explicitly too
+- **Zoom was disabled site-wide** (`userScalable: false`, `maximumScale: 1`) — fails WCAG 1.4.4; removed
+- **Low-contrast text app-wide** — the primary `Button` component (white text on `rose-500`, ~3.74:1) and every other `text-rose-500`/`text-green-500` usage rendering as real text (not decorative icon tinting) failed the 4.5:1 minimum; darkened to `rose-600`/`700`/`800` and `green-700`
+- Missing `autocomplete` attributes on email/password/name inputs across all auth pages
+- Deprecated `apple-mobile-web-app-capable` meta tag — added the modern `mobile-web-app-capable` tag alongside it
+
 ## [2.0.0] — 2026-06-25
 
 A major milestone covering everything built since the initial 0.1.0 release: new tracking features, critical infrastructure fixes, and a real test suite.

@@ -225,6 +225,9 @@ middleware.ts                    # Auth guard -- redirects to /login if not sign
 - The service worker only activates in production build. For dev, run `npm run build && npm start`
 - Tailwind purges unused classes at build time — dynamic color class names are safelisted in `tailwind.config.ts`
 - PostCSS config must be `postcss.config.js` (CommonJS) — Next's webpack CSS pipeline loads it via `require()`, which silently fails on `.mjs` ESM config files and falls back to a no-op pass-through (Tailwind directives never get compiled)
+- `middleware.ts`'s matcher must explicitly exclude any file-based metadata route (`app/icon.png`, `app/robots.ts`, future `sitemap.ts`, etc.) — otherwise unauthenticated requests for them get redirected to `/login`, which silently breaks the favicon and `robots.txt`
+- If `metadata.icons` is set at all (e.g. for `apple`), Next's automatic file-convention detection of `app/icon.png` is suppressed — `icon` must be listed explicitly in that same object or no `<link rel="icon">` tag is emitted
+- Browsers cache favicons very aggressively — after changing icon files, a normal refresh often isn't enough; use a hard refresh or a fresh private/incognito window to verify
 
 ---
 
