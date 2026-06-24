@@ -37,7 +37,7 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      await supabase.from('profiles').upsert({ id: data.user.id, name })
+      await supabase.from('profiles').upsert({ id: data.user.id, name, tour_seen: false })
       router.push('/onboarding')
       router.refresh()
     }

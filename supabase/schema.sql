@@ -10,8 +10,12 @@ create table if not exists profiles (
   id         uuid references auth.users(id) on delete cascade primary key,
   name       text not null,
   avatar_url text,
+  tour_seen  boolean default true,  -- new signups explicitly insert false; default true so existing users skip the tour
   created_at timestamptz default now()
 );
+
+-- If table already exists without this column, run:
+-- alter table profiles add column if not exists tour_seen boolean default true;
 
 -- ── Pregnancies ────────────────────────────────
 create table if not exists pregnancies (

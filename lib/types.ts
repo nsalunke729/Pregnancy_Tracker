@@ -4,6 +4,7 @@ export interface Profile {
   id: string
   name: string
   avatar_url?: string
+  tour_seen?: boolean
 }
 
 export interface Pregnancy {
