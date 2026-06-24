@@ -6,11 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import { KickSession } from '@/lib/types'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { vibrate } from '@/lib/haptics'
 import { format, parseISO, subDays } from 'date-fns'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+
 
 export default function KicksPage() {
   const router = useRouter()
@@ -62,7 +64,9 @@ export default function KicksPage() {
 
   function handleKick() {
     if (!running) startTimer()
-    setKicks((k) => k + 1)
+    const next = kicks + 1
+    vibrate(next === 10 ? [60, 40, 60, 40, 60] : 40)
+    setKicks(next)
   }
 
   async function saveSession() {

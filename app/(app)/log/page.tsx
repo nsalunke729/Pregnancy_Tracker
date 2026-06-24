@@ -7,7 +7,7 @@ import { SYMPTOMS } from '@/lib/pregnancy'
 import { Medicine, MedicineLog } from '@/lib/types'
 import { ChipGrid } from '@/components/ChipGrid'
 import { EmojiMoodPicker } from '@/components/EmojiMoodPicker'
-import { Stepper } from '@/components/Stepper'
+import { WaterGlasses } from '@/components/WaterGlasses'
 import { Button } from '@/components/ui/button'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { format } from 'date-fns'
@@ -278,8 +278,7 @@ export default function LogPage() {
               <Droplets className="w-4 h-4 text-blue-400" />
               <p className="text-xs font-semibold text-gray-600">Water</p>
             </div>
-            <Stepper value={water} onChange={setWater} min={0} max={20} />
-            <p className="text-xs text-gray-400 text-center mt-2">glasses</p>
+            <WaterGlasses value={water} onChange={setWater} min={0} max={20} />
           </CardBody>
         </Card>
         <Card>
