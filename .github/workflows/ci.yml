@@ -79,6 +79,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           max_timeout: 120
 
+      - name: Generate Lighthouse config with Vercel bypass header
+        run: |
+          jq --arg token "${{ secrets.VERCEL_PROTECTION_BYPASS }}" \
+            '.ci.collect.settings.extraHeaders = {
+              "x-vercel-protection-bypass": $token,
+              "x-vercel-set-bypass-cookie": "true"
+            }' .lighthouserc.json > .lighthouserc.ci.json
+
       - name: Run Lighthouse
         uses: treosh/lighthouse-ci-action@v11
         with:
@@ -86,4 +94,4 @@ jobs:
             ${{ steps.vercel_preview.outputs.url }}/login
           uploadArtifacts: true
           temporaryPublicStorage: true
-          configPath: .lighthouserc.json
+          configPath: .lighthouserc.ci.json

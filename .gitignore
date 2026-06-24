@@ -32,4 +32,5 @@ Thumbs.db
 
 # Lighthouse
 .lighthouseci/
+.lighthouserc.ci.json
 tsconfig.tsbuildinfo
