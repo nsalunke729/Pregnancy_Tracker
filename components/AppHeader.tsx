@@ -11,10 +11,10 @@ export function AppHeader() {
               <span className="text-lg leading-none">🤰</span>
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900 leading-tight tracking-tight">
+              <p className="text-base font-bold text-gray-900 leading-tight tracking-tight whitespace-nowrap truncate">
                 Pregnancy Tracker
               </p>
-              <p className="text-[10px] text-rose-400 font-medium leading-tight">
+              <p className="text-[10px] text-rose-400 font-medium leading-tight whitespace-nowrap truncate">
                 Your daily companion ♥
               </p>
             </div>
