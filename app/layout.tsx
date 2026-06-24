@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   icons: {
     apple: '/icons/apple-touch-icon.png',
   },
+  // Next's appleWebApp.capable only emits the legacy apple-prefixed meta tag;
+  // browsers now want this standard one too.
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 }
 
 export const viewport: Viewport = {

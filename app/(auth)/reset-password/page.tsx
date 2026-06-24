@@ -80,6 +80,7 @@ function ResetPasswordForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
               <input
                 type="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -91,6 +92,7 @@ function ResetPasswordForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <input
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"

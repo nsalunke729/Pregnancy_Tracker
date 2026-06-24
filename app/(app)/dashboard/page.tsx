@@ -164,7 +164,7 @@ function DashboardContent() {
               <p className="text-[11px] text-gray-400">Share to let your partner join</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold tracking-widest text-rose-500">{pregnancy.join_code}</span>
+              <span className="text-lg font-bold tracking-widest text-rose-600">{pregnancy.join_code}</span>
               <Button size="icon" variant="secondary" onClick={copyCode}>
                 <Copy className="w-3.5 h-3.5" />
               </Button>

@@ -115,7 +115,7 @@ export default function WeightPage() {
             <p className="text-xs text-gray-500">kg start</p>
           </CardBody></Card>
           <Card><CardBody className="py-3 text-center">
-            <p className={`text-lg font-bold ${Number(gained) > 0 ? 'text-rose-500' : 'text-green-500'}`}>
+            <p className={`text-lg font-bold ${Number(gained) > 0 ? 'text-rose-600' : 'text-green-700'}`}>
               {gained ? `+${gained}` : '—'}
             </p>
             <p className="text-xs text-gray-500">kg gained</p>

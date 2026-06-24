@@ -86,6 +86,7 @@ export default function ForgotPasswordPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -105,7 +106,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          <Link href="/login" className="text-rose-500 font-semibold">Back to sign in</Link>
+          <Link href="/login" className="text-rose-600 font-semibold">Back to sign in</Link>
         </p>
       </div>
     </div>

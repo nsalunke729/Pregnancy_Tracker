@@ -236,7 +236,7 @@ export default function LogPage() {
             <Activity className="w-4 h-4 text-orange-400" />
             <p className="text-sm font-semibold text-gray-700">Symptoms</p>
             {symptoms.length > 0 && (
-              <span className="text-xs font-medium text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
                 {symptoms.length} selected
               </span>
             )}
