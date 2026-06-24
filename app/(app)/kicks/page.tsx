@@ -4,9 +4,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { KickSession } from '@/lib/types'
-import { Card, CardBody } from '@/components/ui/card'
+import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
+import { format, parseISO, subDays } from 'date-fns'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 export default function KicksPage() {
   const router = useRouter()
@@ -42,7 +46,7 @@ export default function KicksPage() {
       .from('kick_sessions').select('*')
       .eq('pregnancy_id', pregnancy.id)
       .order('created_at', { ascending: false })
-      .limit(10)
+      .limit(50)
 
     setSessions(data ?? [])
     setLoading(false)
@@ -105,6 +109,17 @@ export default function KicksPage() {
 
   const goalReached = kicks >= 10
 
+  // ── Weekly trend: total kicks per day, last 7 days ──
+  const chartData = Array.from({ length: 7 }, (_, i) => {
+    const day = subDays(new Date(), 6 - i)
+    const dayStr = format(day, 'yyyy-MM-dd')
+    const total = sessions
+      .filter((s) => s.date === dayStr)
+      .reduce((sum, s) => sum + s.kick_count, 0)
+    return { label: format(day, 'EEE'), kicks: total }
+  })
+  const hasChartData = chartData.some((d) => d.kicks > 0)
+
   return (
     <div className="p-4 space-y-4">
       <div className="pt-4 pb-2">
@@ -153,12 +168,33 @@ export default function KicksPage() {
         Goal: 10 kicks in 2 hours
       </div>
 
+      {/* Weekly trend */}
+      {hasChartData && (
+        <Card>
+          <CardHeader><p className="text-sm font-semibold text-gray-700">Weekly Movement Pattern</p></CardHeader>
+          <CardBody>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#fce7f3" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  formatter={(v: number) => [`${v} kicks`, 'Total']}
+                />
+                <Bar dataKey="kicks" fill="#fb7185" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardBody>
+        </Card>
+      )}
+
       {/* Session history */}
       {sessions.length > 0 && (
         <div>
           <p className="text-xs font-medium text-gray-500 mb-3">RECENT SESSIONS</p>
           <div className="space-y-2">
-            {sessions.map((s) => (
+            {sessions.slice(0, 10).map((s) => (
               <Card key={s.id}>
                 <CardBody className="flex items-center justify-between py-3">
                   <div>
