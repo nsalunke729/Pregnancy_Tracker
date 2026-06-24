@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [password, setPassword]               = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError]     = useState('')
@@ -14,17 +15,30 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // The recovery link puts a token in the URL; supabase-js exchanges it for
-    // a temporary session automatically on load. Wait for that session before
-    // allowing the form to submit, otherwise updateUser() has nothing to act on.
+    // createBrowserClient (@supabase/ssr) defaults to the PKCE flow, so the
+    // recovery link carries a ?code= query param rather than a URL hash
+    // token -- it must be exchanged explicitly, it isn't picked up by
+    // getSession() automatically the way the older implicit flow was.
+    const code = searchParams.get('code')
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data: { session } }) => {
+
+    async function verify() {
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+          setError('This reset link is invalid or has expired. Request a new one.')
+          setReady(true)
+          return
+        }
+      }
+      const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         setError('This reset link is invalid or has expired. Request a new one.')
       }
       setReady(true)
-    })
-  }, [])
+    }
+    verify()
+  }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -96,5 +110,13 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
