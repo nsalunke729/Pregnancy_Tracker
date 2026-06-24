@@ -9,8 +9,9 @@ import {
   isSameMonth, isToday, parseISO, getDay,
   startOfWeek, endOfWeek, addWeeks,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toCSV, downloadCSV } from '@/lib/csv'
 
 /* ── Types ──────────────────────────────────────────── */
 interface DayMeta  { hasLog: boolean; hasKicks: boolean; mood?: number }
@@ -43,6 +44,7 @@ export default function HistoryPage() {
   const [dayDetail,     setDayDetail]     = useState<DayDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [pageLoading,   setPageLoading]   = useState(true)
+  const [exporting,     setExporting]     = useState(false)
 
   const weekAnchor = addWeeks(new Date(), weekOffset)
   const weekStart  = startOfWeek(weekAnchor, { weekStartsOn: 1 })
@@ -128,6 +130,84 @@ export default function HistoryPage() {
     setViewMode(mode); setSelectedDay(null); setDayDetail(null)
   }
 
+  async function handleExport() {
+    if (!pregnancyId) return
+    setExporting(true)
+    const supabase = createClient()
+
+    const [{ data: logs }, { data: meds }, { data: kicks }, { data: weights }] = await Promise.all([
+      supabase.from('daily_logs').select('*, symptoms(*)').eq('pregnancy_id', pregnancyId).order('date'),
+      supabase.from('medicines').select('id, name').eq('pregnancy_id', pregnancyId),
+      supabase.from('kick_sessions').select('date, kick_count').eq('pregnancy_id', pregnancyId),
+      supabase.from('weight_logs').select('date, weight_kg').eq('pregnancy_id', pregnancyId),
+    ])
+
+    let medLogsByDate: Record<string, string[]> = {}
+    if (meds?.length) {
+      const medNameById: Record<string, string> = {}
+      meds.forEach((m: { id: string; name: string }) => { medNameById[m.id] = m.name })
+      const { data: medLogs } = await supabase
+        .from('medicine_logs').select('medicine_id, date, taken')
+        .in('medicine_id', meds.map((m: { id: string }) => m.id))
+        .eq('taken', true)
+      medLogsByDate = {}
+      medLogs?.forEach((l: { medicine_id: string; date: string }) => {
+        const name = medNameById[l.medicine_id]
+        if (!name) return
+        medLogsByDate[l.date] = [...(medLogsByDate[l.date] ?? []), name]
+      })
+    }
+
+    const kicksByDate: Record<string, number> = {}
+    kicks?.forEach((k: { date: string; kick_count: number }) => {
+      kicksByDate[k.date] = (kicksByDate[k.date] ?? 0) + k.kick_count
+    })
+
+    const weightByDate: Record<string, number> = {}
+    weights?.forEach((w: { date: string; weight_kg: number }) => { weightByDate[w.date] = w.weight_kg })
+
+    // Union of every date that has *any* data, not just daily_logs -- a day
+    // with only a weight entry or kick session shouldn't be dropped.
+    const allDates = new Set<string>([
+      ...(logs ?? []).map((l: { date: string }) => l.date),
+      ...Object.keys(kicksByDate),
+      ...Object.keys(weightByDate),
+    ])
+    const sortedDates = Array.from(allDates).sort()
+
+    interface ExportLogRow {
+      date: string; mood?: number; water_glasses?: number; sleep_hours?: number
+      notes?: string; symptoms?: Symptom[]
+    }
+    const logsByDate: Record<string, ExportLogRow> = {}
+    logs?.forEach((l: ExportLogRow) => { logsByDate[l.date] = l })
+
+    const rows = sortedDates.map((date) => {
+      const log = logsByDate[date]
+      const symptoms = (log?.symptoms ?? [])
+        .map((s: Symptom) => `${s.symptom_type} (${s.severity}/10)`)
+        .join('; ')
+      return [
+        date,
+        log?.mood ? MOOD_LABEL[log.mood] : '',
+        log?.water_glasses ?? '',
+        log?.sleep_hours ?? '',
+        weightByDate[date] ?? '',
+        symptoms,
+        (medLogsByDate[date] ?? []).join('; '),
+        kicksByDate[date] ?? '',
+        log?.notes ?? '',
+      ]
+    })
+
+    const csv = toCSV(
+      ['Date', 'Mood', 'Water (glasses)', 'Sleep (hrs)', 'Weight (kg)', 'Symptoms', 'Medicines Taken', 'Kicks', 'Notes'],
+      rows
+    )
+    downloadCSV(`pregnancy-log-${format(new Date(), 'yyyy-MM-dd')}.csv`, csv)
+    setExporting(false)
+  }
+
   if (pageLoading) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-4xl animate-pulse">📆</div>
@@ -145,21 +225,31 @@ export default function HistoryPage() {
           <p className="text-rose-400 text-sm font-medium">Your journey</p>
           <h1 className="text-2xl font-bold text-gray-900">History</h1>
         </div>
-        <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => switchMode('week')}
-            className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg transition-all',
-              viewMode === 'week' ? 'bg-white text-rose-600 shadow-sm' : 'text-gray-500')}
+            onClick={handleExport}
+            disabled={exporting}
+            title="Export as CSV"
+            className="p-2 rounded-xl bg-gray-100 text-gray-500 hover:bg-rose-50 hover:text-rose-500 transition-colors disabled:opacity-50"
           >
-            Week
+            <Download className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => switchMode('month')}
-            className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg transition-all',
-              viewMode === 'month' ? 'bg-white text-rose-600 shadow-sm' : 'text-gray-500')}
-          >
-            All
-          </button>
+          <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+            <button
+              onClick={() => switchMode('week')}
+              className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg transition-all',
+                viewMode === 'week' ? 'bg-white text-rose-600 shadow-sm' : 'text-gray-500')}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => switchMode('month')}
+              className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg transition-all',
+                viewMode === 'month' ? 'bg-white text-rose-600 shadow-sm' : 'text-gray-500')}
+            >
+              All
+            </button>
+          </div>
         </div>
       </div>
 
