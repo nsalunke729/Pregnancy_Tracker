@@ -57,6 +57,7 @@ export default function SignupPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Your Name</label>
             <input
               type="text"
+              autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
@@ -68,6 +69,7 @@ export default function SignupPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
             <input
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -79,6 +81,7 @@ export default function SignupPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
             <input
               type="password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 8 characters"
@@ -99,7 +102,7 @@ export default function SignupPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{' '}
-          <Link href="/login" className="text-rose-500 font-semibold">Sign in</Link>
+          <Link href="/login" className="text-rose-600 font-semibold">Sign in</Link>
         </p>
       </div>
     </div>

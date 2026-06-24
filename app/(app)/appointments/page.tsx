@@ -264,7 +264,7 @@ function ApptCard({
               <p className="text-xs font-semibold text-gray-700">Questions &amp; Answers</p>
               <button
                 onClick={() => setAddingQ(true)}
-                className="flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600"
+                className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700"
               >
                 <MessageSquarePlus className="w-3.5 h-3.5" />
                 Add question

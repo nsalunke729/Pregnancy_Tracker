@@ -227,7 +227,7 @@ export default function MedicinesPage() {
           <CardBody className="py-3">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold text-gray-700">Today&apos;s Progress</p>
-              <span className={cn('text-sm font-bold', allTaken ? 'text-green-600' : 'text-rose-500')}>
+              <span className={cn('text-sm font-bold', allTaken ? 'text-green-600' : 'text-rose-600')}>
                 {takenCount}/{current.length}
               </span>
             </div>

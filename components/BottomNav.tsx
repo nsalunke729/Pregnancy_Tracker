@@ -27,7 +27,7 @@ export function BottomNav() {
               href={href}
               className={cn(
                 'flex flex-col items-center gap-0.5 py-2 px-3 min-w-0 flex-1 transition-colors',
-                active ? 'text-rose-500' : 'text-gray-400'
+                active ? 'text-rose-600' : 'text-gray-400'
               )}
             >
               <Icon className={cn('w-5 h-5', active && 'stroke-[2.5]')} />
