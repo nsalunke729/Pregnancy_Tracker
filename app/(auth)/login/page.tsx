@@ -66,7 +66,7 @@ export default function LoginPage() {
           )}
 
           <div className="text-right">
-            <Link href="/forgot-password" className="text-xs text-rose-400 font-medium">
+            <Link href="/forgot-password" className="text-xs text-rose-600 font-medium">
               Forgot password?
             </Link>
           </div>
