@@ -48,7 +48,7 @@ export default function ContractionsPage() {
       .from('contractions').select('*')
       .eq('pregnancy_id', pregnancy.id)
       .order('started_at', { ascending: false })
-      .limit(20)
+      .limit(30)
 
     setContractions(data ?? [])
     setLoading(false)
@@ -69,7 +69,7 @@ export default function ContractionsPage() {
     vibrate(40)
 
     const startedAt = new Date(startRef.current).toISOString()
-    const duration = elapsed
+    const duration = Math.round((Date.now() - startRef.current) / 1000)
     setRunning(false)
     setElapsed(0)
     startRef.current = null
@@ -95,17 +95,23 @@ export default function ContractionsPage() {
   }
 
   // ── 5-1-1 pattern check: contractions ~5 min apart, ~1 min long, for ~1 hour ──
-  const recent = contractions.slice(0, 6)
+  // Look at every contraction within a trailing window (not a fixed count) so
+  // a real hour of ~5-min-apart contractions (~13 entries) isn't sliced away.
+  const WINDOW_MS = 75 * 60 * 1000
+  const anchor = contractions[0] ? new Date(contractions[0].started_at).getTime() : 0
+  const windowed = contractions.filter(
+    (c) => anchor - new Date(c.started_at).getTime() <= WINDOW_MS
+  )
   let patternAlert = false
-  if (recent.length >= 6) {
+  if (windowed.length >= 3) {
     const gaps: number[] = []
-    for (let i = 0; i < recent.length - 1; i++) {
-      const gap = (new Date(recent[i].started_at).getTime() - new Date(recent[i + 1].started_at).getTime()) / 1000
+    for (let i = 0; i < windowed.length - 1; i++) {
+      const gap = (new Date(windowed[i].started_at).getTime() - new Date(windowed[i + 1].started_at).getTime()) / 1000
       gaps.push(gap)
     }
     const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length
-    const avgDuration = recent.reduce((a, c) => a + c.duration_seconds, 0) / recent.length
-    const span = (new Date(recent[0].started_at).getTime() - new Date(recent[recent.length - 1].started_at).getTime()) / 1000
+    const avgDuration = windowed.reduce((a, c) => a + c.duration_seconds, 0) / windowed.length
+    const span = (new Date(windowed[0].started_at).getTime() - new Date(windowed[windowed.length - 1].started_at).getTime()) / 1000
     patternAlert = avgGap <= 5 * 60 && avgDuration >= 60 && span >= 60 * 60
   }
 
